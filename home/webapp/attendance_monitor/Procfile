@@ -1,0 +1,1 @@
+web: daphne attendance_monitor.asgi:application --port $PORT --bind 0.0.0.0

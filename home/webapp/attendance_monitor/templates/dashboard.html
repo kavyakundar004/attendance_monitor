@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f6fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info span {
+            font-size: 16px;
+        }
+
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .attendance-table-container {
+            padding: 25px 30px;
+            overflow-x: auto;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .attendance-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .attendance-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .status-present {
+            color: #28a745;
+            font-weight: 600;
+            padding: 4px 12px;
+            background: #d4edda;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .status-absent {
+            color: #dc3545;
+            font-weight: 600;
+            padding: 4px 12px;
+            background: #f8d7da;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .status-pending {
+            color: #ffc107;
+            font-weight: 600;
+            padding: 4px 12px;
+            background: #fff3cd;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px !important;
+        }
+
+        .actions-container {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .actions-container h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 22px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .device-info {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .device-info h4 {
+            margin-bottom: 8px;
+            color: #0056b3;
+        }
+
+        .device-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .device-info-item {
+            padding: 5px 0;
+        }
+
+        .device-info-label {
+            font-weight: bold;
+            color: #0056b3;
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .device-info-value {
+            color: #333;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        /* Leave Form Styles */
+        .leave-section {
+            padding: 25px 30px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .leave-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .leave-form-container, .leave-history-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .leave-form-container h3, .leave-history-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-Pending { background: #fff3cd; color: #856404; }
+        .status-Approved { background: #d4edda; color: #155724; }
+        .status-Rejected { background: #f8d7da; color: #721c24; }
+
+        /* Profile Styles */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+
+        .profile-details h3 { margin-bottom: 5px; }
+        .profile-details p { color: #666; font-size: 14px; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Camera Modal Styles */
+        #camera-container {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .attendance-table-container {
+                padding: 15px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .device-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h2>Attendance Dashboard</h2>
+            <div class="user-info">
+                <span>Welcome, {{ request.user.username }}!</span>
+                <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+            </div>
+        </header>
+
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <img src="{{ user_profile.profile_pic.url }}" alt="Profile" class="profile-img">
+            <div class="profile-details">
+                <h3>{{ request.user.username }}</h3>
+                <p>{{ user_profile.department.name }} | {{ user_profile.shift.name }}</p>
+                <button onclick="document.getElementById('profileModal').style.display='block'" class="btn" style="padding: 5px 10px; font-size: 12px; margin-top: 5px; background: #eee;">Edit Profile</button>
+            </div>
+        </div>
+
+        <!-- Profile Update Modal -->
+        <div id="profileModal" class="modal">
+            <div class="modal-content">
+                <h3>Update Profile</h3>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        {{ profile_form.phone_number }}
+                    </div>
+                    <div class="form-group">
+                        <label>Profile Picture</label>
+                        {{ profile_form.profile_pic }}
+                    </div>
+                    <div class="form-group">
+                        <label>Bio</label>
+                        {{ profile_form.bio }}
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" name="update_profile" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+                        <button type="button" onclick="document.getElementById('profileModal').style.display='none'" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Camera Modal for Selfie Attendance -->
+        <div id="cameraModal" class="modal">
+            <div class="modal-content" style="width: 500px;">
+                <h3>Selfie Verification</h3>
+                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">Please look into the camera and capture a photo to mark your attendance.</p>
+                <div id="camera-container">
+                    <video id="video" autoplay playsinline></video>
+                    <div class="camera-overlay"></div>
+                </div>
+                <canvas id="canvas" width="640" height="480"></canvas>
+                <div style="display: flex; gap: 10px;">
+                    <button id="capture-btn" class="btn btn-primary" style="flex: 1;">Capture & Mark Present</button>
+                    <button type="button" onclick="closeCamera()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Information Display -->
+        <div class="device-info">
+            <h4>Device Information</h4>
+            <div id="device-details">
+                Loading device information...
+            </div>
+        </div>
+
+        <div class="attendance-table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Login</th>
+                        <th>Logout</th>
+                        <th>Hours</th>
+                        <th>Device</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td>{{ r.login_time.date }}</td>
+                        <td>{{ r.login_time|time:"H:i:s" }}</td>
+                        <td>{{ r.logout_time|time:"H:i:s"|default:"-" }}</td>
+                        <td>{{ r.duration_hours|floatformat:2 }}</td>
+                        <td title="{{ r.device.device_type }}">{{ r.device.device_id|truncatechars:10 }}</td>
+                        <td>
+                            {% if r.logout_time %}
+                                <span class="status-present">Present</span>
+                            {% else %}
+                                <span class="status-pending">Pending</span>
+                            {% endif %}
+                            {% if r.is_late %}
+                                <span class="status-absent" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">Late</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty-state">No attendance records yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions-container">
+            <h3>Attendance Actions</h3>
+            <div class="action-buttons">
+                {% if today_attendance %}
+                    <button id="mark-present-btn" class="btn btn-primary" disabled>Present Marked</button>
+                    {% if today_attendance.logout_time %}
+                        <button id="mark-logout-btn" class="btn btn-secondary" disabled>Logout Done</button>
+                    {% else %}
+                        <button id="mark-logout-btn" class="btn btn-secondary">Mark Logout</button>
+                    {% endif %}
+                {% else %}
+                    <button id="mark-present-btn" class="btn btn-primary">Mark Present</button>
+                    <button id="mark-logout-btn" class="btn btn-secondary" disabled>Mark Logout</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Leave Management Section -->
+        <div class="leave-section">
+            <div class="leave-grid">
+                <!-- Apply Leave Form -->
+                <div class="leave-form-container">
+                    <h3>Apply for Leave</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label>Leave Type</label>
+                            {{ leave_form.leave_type }}
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            {{ leave_form.start_date }}
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            {{ leave_form.end_date }}
+                        </div>
+                        <div class="form-group">
+                            <label>Reason</label>
+                            {{ leave_form.reason }}
+                        </div>
+                        <button type="submit" name="apply_leave" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+                    </form>
+                </div>
+
+                <!-- Leave History -->
+                <div class="leave-history-container">
+                    <h3>Leave History</h3>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table class="attendance-table" style="min-width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Dates</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in user_leaves %}
+                                <tr>
+                                    <td>{{ leave.leave_type }}</td>
+                                    <td style="font-size: 12px;">{{ leave.start_date }} to {{ leave.end_date }}</td>
+                                    <td><span class="status-badge status-{{ leave.status }}">{{ leave.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="empty-state">No leave requests yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Device ID Generation
+        function generateEnhancedDeviceId() {
+            const components = [
+                navigator.userAgent,
+                navigator.platform,
+                navigator.language,
+                screen.width + 'x' + screen.height,
+                Intl.DateTimeFormat().resolvedOptions().timeZone,
+                navigator.hardwareConcurrency || 'unknown'
+            ].join('|');
+            
+            let hash = 0;
+            for (let i = 0; i < components.length; i++) {
+                const char = components.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            return 'device-' + Math.abs(hash).toString(36) + '-' + Date.now().toString(36);
+        }
+
+        // Get or create device ID
+        let deviceId = localStorage.getItem('deviceId');
+        if (!deviceId) {
+            deviceId = generateEnhancedDeviceId();
+            localStorage.setItem('deviceId', deviceId);
+        }
+
+        // Enhanced device info object with all fields
+        const deviceInfo = {
+            device_id: deviceId,
+            user_agent: navigator.userAgent,
+            device_type: navigator.platform,
+            screen_resolution: `${screen.width}x${screen.height}`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language,
+            hardware_info: JSON.stringify({
+                cores: navigator.hardwareConcurrency || 'unknown',
+                memory: navigator.deviceMemory || 'unknown',
+                maxTouchPoints: navigator.maxTouchPoints || 0
+            })
+        };
+
+        // Display all device information in a grid layout
+        document.getElementById('device-details').innerHTML = `
+            <div class="device-info-grid">
+                <div class="device-info-item">
+                    <span class="device-info-label">Device ID</span>
+                    <span class="device-info-value">${deviceInfo.device_id}</span>
+                </div>
+                <div class="device-info-item">
+                    <span class="device-info-label">Platform</span>
+                    <span class="device-info-value">${deviceInfo.device_type}</span>
+                </div>
+                <div class="device-info-item">
+                    <span class="device-info-label">Screen Resolution</span>
+                    <span class="device-info-value">${deviceInfo.screen_resolution}</span>
+                </div>
+                <div class="device-info-item">
+                    <span class="device-info-label">Timezone</span>
+                    <span class="device-info-value">${deviceInfo.timezone}</span>
+                </div>
+                <div class="device-info-item">
+                    <span class="device-info-label">Language</span>
+                    <span class="device-info-value">${deviceInfo.language}</span>
+                </div>
+                <div class="device-info-item">
+                    <span class="device-info-label">Hardware Info</span>
+                    <span class="device-info-value">${navigator.hardwareConcurrency} cores, ${navigator.deviceMemory || 'unknown'}GB RAM</span>
+                </div>
+                <div class="device-info-item">
+                    <span class="device-info-label">User Agent</span>
+                    <span class="device-info-value" title="${deviceInfo.user_agent}">${deviceInfo.user_agent.substring(0, 50)}...</span>
+                </div>
+            </div>
+        `;
+
+        // Attendance marking functions
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const cameraModal = document.getElementById('cameraModal');
+        let stream = null;
+
+        async function openCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                cameraModal.style.display = 'block';
+            } catch (err) {
+                alert("Could not access camera. Please ensure you have granted permission.");
+                console.error(err);
+            }
+        }
+
+        function closeCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            cameraModal.style.display = 'none';
+        }
+
+        document.getElementById('mark-present-btn').addEventListener('click', () => {
+            openCamera();
+        });
+
+        document.getElementById('capture-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('capture-btn');
+            const markBtn = document.getElementById('mark-present-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            // Capture photo
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const selfieData = canvas.toDataURL('image/jpeg');
+
+            // Close camera
+            closeCamera();
+
+            try {
+                const response = await fetch("{% url 'mark_present' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        ...deviceInfo,
+                        selfie: selfieData
+                    })
+                });
+                
+                const data = await response.json();
+                if(data.status === 'ok') {
+                    alert('Present marked successfully with selfie verification!');
+                    markBtn.disabled = true;
+                    markBtn.textContent = 'Present Marked';
+                    document.getElementById('mark-logout-btn').disabled = false;
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Capture & Mark Present';
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Capture & Mark Present';
+            }
+        });
+
+        document.getElementById('mark-logout-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('mark-logout-btn');
+            btn.disabled = true;
+            btn.textContent = 'Marking...';
+            
+            try {
+                const response = await fetch("{% url 'mark_logout' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        device_id: deviceId  // Send device ID with logout request
+                    })
+                });
+                
+                const data = await response.json();
+                if(data.status === 'ok') {
+                    alert('Logout marked successfully! Hours worked: ' + data.hours.toFixed(2));
+                    btn.disabled = true;
+                    btn.textContent = 'Logout Done';
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Mark Logout';
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Mark Logout';
+            }
+        });
+    </script>
+</body>
+</html>

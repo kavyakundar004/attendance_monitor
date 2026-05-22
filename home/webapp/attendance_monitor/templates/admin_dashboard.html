@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Attendance Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --gray-color: #95a5a6;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--dark-color));
+            color: white;
+            padding: 25px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .filter-form {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .filter-form label {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .filter-form input, .filter-form select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+
+        .filter-form button {
+            padding: 8px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .filter-form button:hover {
+            background-color: #2980b9;
+        }
+
+        .department-section {
+            margin-bottom: 40px;
+        }
+
+        .department-header {
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin-bottom: 0;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: var(--gray-color);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-card.present .value {
+            color: var(--success-color);
+        }
+
+        .stat-card.half-day .value {
+            color: var(--warning-color);
+        }
+
+        .stat-card.absent .value {
+            color: var(--danger-color);
+        }
+
+        .attendance-table-container {
+            background-color: white;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .attendance-table th {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .attendance-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .attendance-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .attendance-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .attendance-table .user-name {
+            font-weight: 600;
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .attendance-table tr:hover .user-name {
+            background-color: #f9f9f9;
+        }
+
+        .status-present {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .status-half {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        .status-absent {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+        .status-weekend {
+            background-color: #f8f9fa;
+            color: var(--gray-color);
+        }
+
+        .summary-cell {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        .export-options {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .export-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        /* Leave Management Admin Styles */
+        .leave-requests-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .leave-requests-section h3 {
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-approve { background: var(--success-color); color: white; }
+        .btn-reject { background: var(--danger-color); color: white; }
+        .action-btn:hover { opacity: 0.9; transform: scale(1.05); }
+
+        /* Notification Toast */
+        #notification-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .toast {
+            background: var(--secondary-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-color);
+            font-style: italic;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .filter-form input, .filter-form select {
+                display: block;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Notification Container for WebSocket -->
+        <div id="notification-container"></div>
+
+        {% load custom_tags %}
+        <header class="dashboard-header">
+            <h2>Admin Attendance Dashboard</h2>
+            <div class="filter-form">
+                <form method="GET">
+                    <label for="year">Year:</label>
+                    <select name="year" id="year">
+                        {% for y in years %}
+                            <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="month">Month:</label>
+                    <select name="month" id="month">
+                        {% for m in months %}
+                            <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="department">Department:</label>
+                    <select name="department" id="department">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if dept.id == selected_department %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit">Filter</button>
+                    <a href="{% url 'add_employee' %}" class="action-btn" style="background: var(--success-color); margin-left: 10px;">+ Add Employee</a>
+                    <a href="{% url 'logout' %}" class="action-btn" style="background: var(--danger-color); margin-left: 20px;">Logout</a>
+                </form>
+            </div>
+        </header>
+
+        <div class="stats-summary">
+            <div class="stat-card present">
+                <h3>Total Present</h3>
+                <div class="value">{{ total_presents }}</div>
+            </div>
+            <div class="stat-card half-day">
+                <h3>Total Half Days</h3>
+                <div class="value">{{ total_halves }}</div>
+            </div>
+            <div class="stat-card absent">
+                <h3>Total Absents</h3>
+                <div class="value">{{ total_absents }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Attendance Rate</h3>
+                <div class="value">{{ attendance_rate }}%</div>
+            </div>
+        </div>
+
+        <!-- Pending Leave Requests Section -->
+        <div class="leave-requests-section">
+            <h3>Pending Leave Requests</h3>
+            <div class="attendance-table-container">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in pending_leaves %}
+                        <tr>
+                            <td class="user-name">{{ leave.user.username }}</td>
+                            <td>{{ leave.leave_type }}</td>
+                            <td>{{ leave.start_date }}</td>
+                            <td>{{ leave.end_date }}</td>
+                            <td title="{{ leave.reason }}">{{ leave.reason|truncatechars:30 }}</td>
+                            <td>
+                                <a href="{% url 'approve_leave' leave.id %}" class="action-btn btn-approve">Approve</a>
+                                <a href="{% url 'reject_leave' leave.id %}" class="action-btn btn-reject">Reject</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="no-data">No pending leave requests.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="export-options">
+            <button class="export-btn">Export Report</button>
+        </div>
+
+        {% if department_tables %}
+            {% for dept_table in department_tables %}
+            <div class="department-section">
+                <h3 class="department-header">{{ dept_table.department }} Department</h3>
+                
+                <div class="attendance-table-container">
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                {% for day in 1|to:num_days %}
+                                <th>{{ day }}</th>
+                                {% endfor %}
+                                <th>Total Days</th>
+                                <th>Presents</th>
+                                <th>Half Days</th>
+                                <th>Absents</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in dept_table.table %}
+                            <tr>
+                                <td class="user-name">
+                                    {{ row.user }}
+                                    <a href="{% url 'employee_details' row.user_id %}" class="action-btn" style="background: var(--primary-color); padding: 2px 6px; margin-left: 5px;">Info</a>
+                                </td>
+                                {% for status in row.days %}
+                                <td class="{% if status == 'P' %}status-present{% elif status == 'H' %}status-half{% elif status == 'A' %}status-absent{% elif status == 'Sunday' %}status-weekend{% endif %}">
+                                    {{ status }}
+                                </td>
+                                {% endfor %}
+                                <td class="summary-cell">{{ row.month_days }}</td>
+                                <td class="summary-cell status-present">{{ row.present }}</td>
+                                <td class="summary-cell status-half">{{ row.half }}</td>
+                                <td class="summary-cell status-absent">{{ row.absent }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-data">
+                <p>No attendance data available for the selected filters.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Add weekend highlighting
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentMonth = {{ selected_month }};
+            const currentYear = {{ selected_year }};
+            const numDays = {{ num_days }};
+            
+            // Add weekend highlighting for each department table
+            document.querySelectorAll('.attendance-table').forEach(table => {
+                const headers = table.querySelectorAll('th');
+                headers.forEach((header, index) => {
+                    // Skip the first header (Name) and summary headers
+                    if (index > 0 && index <= numDays) {
+                        const day = index; // Day number
+                        const date = new Date(currentYear, currentMonth - 1, day);
+                        // Check if it's a weekend (Saturday=6, Sunday=0)
+                        if (date.getDay() === 0 || date.getDay() === 6) {
+                            header.style.backgroundColor = '#f8f9fa';
+                            header.style.color = '#95a5a6';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // WebSocket for Real-time Monitoring
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const attendanceSocket = new WebSocket(
+            wsProtocol + window.location.host + '/ws/attendance/'
+        );
+
+        attendanceSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            showNotification(data);
+            // Optionally reload page or update table dynamically
+            // For now, we'll just show a notification and reload after 3 seconds
+            setTimeout(() => { location.reload(); }, 5000);
+        };
+
+        attendanceSocket.onclose = function(e) {
+            console.error('Attendance socket closed unexpectedly');
+        };
+
+        function showNotification(data) {
+            const container = document.getElementById('notification-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <strong>${data.username}</strong> marked present at ${data.time} 
+                ${data.is_late ? '<span style="color: #ffc107;">(Late)</span>' : ''}
+            `;
+            container.appendChild(toast);
+            
+            // Remove toast after 10 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 10000);
+        }
+    </script>
+</body>
+</html>
