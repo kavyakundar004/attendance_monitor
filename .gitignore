@@ -1,0 +1,11 @@
+*.pyc
+*~
+__pycache__
+.vscode
+.trae
+db.sqlite3
+media/
+staticfiles/
+.env
+# Keep requirements.txt in root
+!requirements.txt
