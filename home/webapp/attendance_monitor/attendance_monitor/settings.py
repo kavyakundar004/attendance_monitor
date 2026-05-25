@@ -14,6 +14,8 @@ ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://attendance-monitor-mdtk.onrender.com',
+    'https://attendance-monitor-ophe.onrender.com',
+    'https://*.onrender.com',
 ]
 
 LOGIN_REDIRECT_URL = '/dashboard/'
